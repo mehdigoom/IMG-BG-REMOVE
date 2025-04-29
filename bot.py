@@ -21,7 +21,7 @@ def convert_background_to_transparent(image_path, tolerance=30):
             newData.append((255, 255, 255, 0))  # Transparent
         else:
             newData.append(item)
-    
+
     img.putdata(newData)
     return img
 
@@ -50,6 +50,32 @@ def convert_images_to_gif(src_dir):
         )
         print(f'All images converted to GIF: {gif_path}')
 
+def merge_images_into_one(src_dir):
+    output_path = os.path.join(src_dir, 'merged_image.png')
+    images = []
+    
+    for filename in os.listdir(src_dir):
+        if filename.lower().endswith('_transparent.png'):
+            img_path = os.path.join(src_dir, filename)
+            images.append(Image.open(img_path))
+    
+    if images:
+        # Calculate the total width and max height for the merged image
+        total_width = sum(img.width for img in images)
+        max_height = max(img.height for img in images)
+        
+        # Create a new blank image with a transparent background
+        merged_image = Image.new('RGBA', (total_width, max_height), (255, 255, 255, 0))
+        
+        # Paste each image side by side
+        x_offset = 0
+        for img in images:
+            merged_image.paste(img, (x_offset, 0))
+            x_offset += img.width
+        
+        merged_image.save(output_path)
+        print(f'All images merged into one: {output_path}')
+
 def process_directory():
     src_dir = os.path.join(os.path.dirname(__file__), 'src')
     
@@ -74,6 +100,11 @@ def process_directory():
     user_input = input("Do you want to convert all images to a single GIF? (yes/no): ").strip().lower()
     if user_input == 'yes':
         convert_images_to_gif(src_dir)
+    
+    # Ask if the user wants to merge all images into one
+    user_input = input("Do you want to merge all converted images into a single image? (yes/no): ").strip().lower()
+    if user_input == 'yes':
+        merge_images_into_one(src_dir)
 
 if __name__ == '__main__':
     process_directory()
